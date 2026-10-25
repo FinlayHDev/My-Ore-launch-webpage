@@ -414,3 +414,15 @@
     scroll-behavior: auto !important;
   }
 }
+
+@utility rail-track {
+  height: 14px;
+  background:
+    linear-gradient(var(--ink), var(--ink)) top / 100% 3px no-repeat,
+    repeating-linear-gradient(
+      100deg,
+      transparent 0 34px,
+      var(--ink-soft) 34px 37px,
+      transparent 37px 56px
+    );
+}
