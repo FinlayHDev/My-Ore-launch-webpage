@@ -70,7 +70,7 @@ export function WaitlistForm({ tone = "paper" }: { tone?: "paper" | "night" }) {
             if (error) setError(null);
           }}
           className={cn(
-            "h-14 min-w-0 flex-1 px-5 text-base outline-none placeholder:opacity-60",
+            "h-14 w-full min-w-0 px-5 sm:flex-1 text-base outline-none placeholder:opacity-60",
             night
               ? "bg-night-card text-night-foreground placeholder:text-night-muted"
               : "bg-card text-ink placeholder:text-muted-foreground",

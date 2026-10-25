@@ -89,12 +89,12 @@ function SiteHeader() {
 function Hero() {
   return (
     <section id="top" className="border-b border-ink">
-      <div className="mx-auto grid max-w-7xl lg:grid-cols-[1.05fr_1fr]">
+      <div className="mx-auto grid max-w-7xl border-ink lg:grid-cols-[1.05fr_1fr] 2xl:border-x">
         <div className="flex flex-col justify-center px-5 py-14 md:px-8 lg:border-r lg:border-ink lg:py-24 lg:pr-14">
           <p className="label-mono flex items-center gap-3 text-ink-soft">
             <span className="h-2.5 w-2.5 rotate-45 bg-primary" /> First release · Autumn 2026
           </p>
-          <h1 className="display-tight mt-7 text-[clamp(3.4rem,8vw,7rem)]">
+          <h1 className="display-tight mt-7 text-[clamp(3.2rem,5.6vw,6.25rem)]">
             Sort the noise.
             <br />
             Keep the <span className="text-primary">ore.</span>
@@ -165,7 +165,7 @@ function Upgrade() {
   return (
     <section id="notes" className="scroll-mt-20 border-b border-ink">
       <div className="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
-        <div className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-end">
+        <div className="grid gap-6 md:grid-cols-[1.5fr_1fr] md:items-end">
           <div>
             <p className="label-mono text-primary">02 / Notes, upgraded</p>
             <h2 className="display-tight mt-5 text-[clamp(2.5rem,5.5vw,4.5rem)]">

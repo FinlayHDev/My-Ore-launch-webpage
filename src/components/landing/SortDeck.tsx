@@ -160,11 +160,12 @@ export function SortDeck() {
         <div />
 
         <button
-          className={cn(sideBtn("left"), "h-full min-h-40 flex-col py-4 [writing-mode:vertical-rl] rotate-180")}
+          className={cn(sideBtn("left"), "h-full min-h-40 flex-col py-4")}
           onClick={() => send("left")}
           disabled={done}
         >
-          <ArrowRight className="h-4 w-4 rotate-90" /> this week
+          <ArrowLeft className="h-4 w-4" />
+          <span className="rotate-180 [writing-mode:vertical-rl]">this week</span>
         </button>
 
         <div
@@ -233,11 +234,12 @@ export function SortDeck() {
         </div>
 
         <button
-          className={cn(sideBtn("right"), "h-full min-h-40 flex-col py-4 [writing-mode:vertical-rl]")}
+          className={cn(sideBtn("right"), "h-full min-h-40 flex-col py-4")}
           onClick={() => send("right")}
           disabled={done}
         >
-          <ArrowRight className="h-4 w-4 rotate-90" /> today
+          <ArrowRight className="h-4 w-4" />
+          <span className="[writing-mode:vertical-rl]">today</span>
         </button>
 
         <div />
@@ -270,7 +272,7 @@ export function SortDeck() {
         ))}
       </div>
       <p className="mt-4 flex items-center gap-2 text-sm text-night-muted">
-        <ArrowLeft className="h-3.5 w-3.5" /> Drag the card, tap a side, or use your arrow keys.
+        <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Drag the card, tap a side, or use your arrow keys.
       </p>
     </div>
   );
