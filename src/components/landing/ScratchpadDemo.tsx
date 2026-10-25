@@ -102,7 +102,7 @@ export function ScratchpadDemo() {
   const [reduced, setReduced] = useState(false);
   const [sortedCount, setSortedCount] = useState(0);
 
-  const note = NOTES[noteIndex];
+  const note = NOTES[noteIndex] ?? NOTES[0]!;
   const total = useMemo(() => note.segs.reduce((n, s) => n + s.t.length, 0), [note]);
 
   useEffect(() => {
