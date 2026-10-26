@@ -1,4 +1,5 @@
-import hopperDark from "@/assets/hopper-dark.svg.asset.json";
+// To revert to the original Hopper, import "@/assets/hopper-dark.svg.asset.json" here instead.
+import hopperDark from "@/assets/hopper-v2.svg.asset.json";
 import hopperLight from "@/assets/hopper-light.svg.asset.json";
 import { cn } from "@/lib/utils";
 
