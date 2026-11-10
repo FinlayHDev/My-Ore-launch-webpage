@@ -13,8 +13,8 @@ const INITIAL: Lane[] = [
     icon: Zap,
     hint: "under 5 min",
     tasks: [
-      { id: 1, title: "Reply to accommodation email", tag: "#uni", done: true },
-      { id: 2, title: "Email Amy back", tag: "#home", done: false },
+      { id: 1, title: "Reply to supplier quote", tag: "#jobs", done: true },
+      { id: 2, title: "Chase INV-0142", tag: "#money", done: false },
     ],
   },
   {
@@ -22,7 +22,7 @@ const INITIAL: Lane[] = [
     label: "Deep focus",
     icon: Target,
     hint: "one at a time",
-    tasks: [{ id: 3, title: "Review the project outline", tag: "#uni", done: false }],
+    tasks: [{ id: 3, title: "Price up the kitchen refit", tag: "#jobs", done: false }],
   },
   {
     key: "others",
@@ -30,8 +30,8 @@ const INITIAL: Lane[] = [
     icon: Users,
     hint: "needs a reply",
     tasks: [
-      { id: 4, title: "Call Sam about the weekend", tag: "Sam", done: true },
-      { id: 5, title: "Send progress update", tag: "#uni", done: false },
+      { id: 4, title: "Call Jo at Harlow & Co", tag: "Jo", done: true },
+      { id: 5, title: "Confirm Thursday site visit", tag: "#jobs", done: false },
     ],
   },
 ];
