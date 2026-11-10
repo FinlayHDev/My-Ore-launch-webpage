@@ -315,7 +315,7 @@ function HowItWorks() {
                 A day sized to fit.
               </h3>
               <p className="mt-3 text-night-muted">
-                Your day, grouped by the kind of effort it takes. Tick things off and watch
+                Your day, grouped by the kind of effort it takes. Start a 25-minute timer, flip to Split to plan around someone else, and watch
                 Hopper's cart empty out.
               </p>
             </div>
