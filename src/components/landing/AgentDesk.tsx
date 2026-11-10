@@ -111,7 +111,7 @@ const AGENTS: Agent[] = [
 ];
 
 export function AgentDesk() {
-  const [active, setActive] = useState(AGENTS[0].key);
+  const [active, setActive] = useState<string>("receipts");
   const [approved, setApproved] = useState<Record<string, boolean>>({});
   const agent = AGENTS.find((a) => a.key === active)!;
   const pending = AGENTS.filter((a) => !approved[a.key]).length;
