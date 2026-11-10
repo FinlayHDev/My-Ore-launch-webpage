@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check, Target, Users, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Pause, Play, Target, Users, Zap } from "lucide-react";
 import { Hopper } from "./Hopper";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +55,18 @@ const DAYS = [
 
 export function TodayLanes() {
   const [lanes, setLanes] = useState(INITIAL);
+  const [view, setView] = useState<"list" | "split">("list");
+  // Demo timer: 25 "minutes" run at 1 per 0.2s so the Time's up moment is visible.
+  const [timer, setTimer] = useState<{ id: number; left: number; running: boolean } | null>(null);
+  useEffect(() => {
+    if (!timer?.running || timer.left <= 0) return;
+    const t = setTimeout(() => setTimer((x) => (x ? { ...x, left: x.left - 1 } : x)), 200);
+    return () => clearTimeout(t);
+  }, [timer]);
+  const timedTask = timer ? lanes.flatMap((l) => l.tasks).find((t) => t.id === timer.id) : null;
+  function startTimer(id: number) {
+    setTimer((x) => (x?.id === id ? { ...x, running: !x.running } : { id, left: 25, running: true }));
+  }
   const all = lanes.flatMap((l) => l.tasks);
   const doneCount = all.filter((t) => t.done).length;
   const left = all.length - doneCount;
@@ -128,6 +140,24 @@ export function TodayLanes() {
         ))}
       </div>
 
+      <div className="mt-4 grid grid-cols-2 rounded-full bg-night-card p-1 text-sm font-bold">
+        {(["list", "split"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={cn(
+              "rounded-full py-1.5 capitalize transition-colors",
+              view === v ? "bg-primary text-primary-foreground" : "text-night-muted",
+            )}
+          >
+            {v === "split" ? "Split with Sam" : "List"}
+          </button>
+        ))}
+      </div>
+
+      {view === "split" ? (
+        <SplitView />
+      ) : (
       <div className="mt-5 space-y-4">
         {lanes.map((lane) => {
           const laneLeft = lane.tasks.filter((t) => !t.done).length;
@@ -144,9 +174,10 @@ export function TodayLanes() {
               <ul className="divide-y divide-night-line overflow-hidden rounded-2xl bg-night-card">
                 {lane.tasks.map((t) => (
                   <li key={t.id}>
+                    <div className="flex items-center">
                     <button
                       onClick={() => toggle(t.id)}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-night-raised"
+                      className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left transition-colors hover:bg-night-raised"
                       aria-pressed={t.done}
                     >
                       <span
@@ -169,6 +200,22 @@ export function TodayLanes() {
                       </span>
                       <span className="shrink-0 text-xs text-night-muted">{t.tag}</span>
                     </button>
+                    {!t.done && (
+                      <button
+                        onClick={() => startTimer(t.id)}
+                        aria-label={`Start a 25 minute timer for ${t.title}`}
+                        className={cn(
+                          "mx-2 flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition-colors",
+                          timer?.id === t.id
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-night-raised text-night-muted hover:text-night-foreground",
+                        )}
+                      >
+                        {timer?.id === t.id && timer.running ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                        {timer?.id === t.id ? `${timer.left}m` : "25m"}
+                      </button>
+                    )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -176,6 +223,76 @@ export function TodayLanes() {
           );
         })}
       </div>
+      )}
+
+      {timer && timedTask && !timedTask.done && (
+        <div
+          className={cn(
+            "mt-5 rounded-2xl p-4 transition-colors",
+            timer.left === 0 ? "bg-primary text-primary-foreground" : "bg-night-card",
+          )}
+        >
+          <p className="label-mono">{timer.left === 0 ? "Time's up · 25 min" : "Focus timer"}</p>
+          <div className="mt-2 flex items-center gap-3">
+            <p className="min-w-0 flex-1 truncate font-semibold">{timedTask.title}</p>
+            <p className="font-display text-xl font-bold tabular-nums">
+              {String(timer.left).padStart(2, "0")}:00
+            </p>
+          </div>
+          {timer.left === 0 && (
+            <div className="mt-3 flex gap-2 text-sm font-bold">
+              <button onClick={() => { toggle(timedTask.id); setTimer(null); }} className="flex-1 rounded-full bg-night py-2 text-night-foreground">
+                Done
+              </button>
+              <button onClick={() => setTimer(null)} className="flex-1 rounded-full border border-current py-2">
+                Not yet
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const SPLIT = [
+  { start: 9, end: 11, you: "Site visit · Bath", sam: "Busy" },
+  { start: 12, end: 13, you: "Lunch with Sam", sam: "Lunch with you", shared: true },
+  { start: 15, end: 16.5, you: null, sam: "Busy" },
+];
+
+function SplitView() {
+  const top = 8, span = 9;
+  return (
+    <div className="mt-5">
+      <div className="grid grid-cols-[2.5rem_1fr_1fr] gap-2 text-xs">
+        <span />
+        <p className="font-bold">You <span className="font-normal text-night-muted">· free 5h</span></p>
+        <p className="font-bold">Sam <span className="font-normal text-night-muted">· busy only</span></p>
+      </div>
+      <div className="relative mt-2 h-72 rounded-2xl bg-night-card">
+        {[9, 11, 13, 15, 17].map((h) => (
+          <div key={h} className="absolute inset-x-0 border-t border-night-line" style={{ top: `${((h - top) / span) * 100}%` }}>
+            <span className="absolute left-2 -translate-y-1/2 bg-night-card px-1 text-[10px] text-night-muted">{h}:00</span>
+          </div>
+        ))}
+        {SPLIT.map((b) => {
+          const style = { top: `${((b.start - top) / span) * 100}%`, height: `${((b.end - b.start) / span) * 100}%` };
+          return b.shared ? (
+            <div key={b.start} style={style} className="absolute left-12 right-2 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+              Lunch with Sam · 12:00–13:00
+            </div>
+          ) : (
+            <div key={b.start}>
+              {b.you && (
+                <div style={style} className="absolute left-12 w-[calc(50%-2.5rem)] rounded-xl bg-token-date-bg px-2 py-1.5 text-xs font-bold text-token-date">{b.you}</div>
+              )}
+              <div style={style} className="absolute right-2 w-[calc(50%-2.5rem)] rounded-xl border border-dashed border-night-muted px-2 py-1.5 text-xs text-night-muted">{b.sam}</div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-3 text-xs text-night-muted">Hopper finds the gaps you both share — Sam only shares when, not what.</p>
     </div>
   );
 }
