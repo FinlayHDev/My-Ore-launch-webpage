@@ -6,21 +6,22 @@ import { ScratchpadDemo } from "@/components/landing/ScratchpadDemo";
 import { SortDeck } from "@/components/landing/SortDeck";
 import { TodayLanes } from "@/components/landing/TodayLanes";
 import { Contours } from "@/components/landing/Contours";
+import { AgentDesk } from "@/components/landing/AgentDesk";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "My Ore — the notes app that sorts itself" },
+      { title: "My Ore — the notes app with agents for your business" },
       {
         name: "description",
         content:
-          "Empty your head into My Ore. Hopper reads your notes, spots the dates, calls and people, and sorts them into a day you can finish. Waitlist open for Autumn 2026.",
+          "My Ore is a notes app for business owners. Hopper sorts your day while agents handle receipts, mileage, invoices and inbox admin. Waitlist open for Autumn 2026.",
       },
       { property: "og:title", content: "My Ore — Sort the noise. Keep the ore." },
       {
         property: "og:description",
         content:
-          "A notes app that reads back. Hopper turns messy notes into a sorted, finishable day.",
+          "Notes that sort themselves, plus agents for receipts, mileage and invoices.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,14 +33,14 @@ export const Route = createFileRoute("/")({
 const SNIPPETS = [
   "call the dentist thurs",
   "amy bday sat!!",
-  "invoice render £240",
-  "2hrs on the outline",
-  "parcel @ mum's",
+  "receipt — fuel £62",
+  "chase harlow invoice",
+  "miles to bath site",
   "book train fri am",
   "reply to landlord",
   "milk, eggs, the good bread",
-  "ask sam re: weekend",
-  "cancel gym (actually)",
+  "VAT return due",
+  "quote for priya fri",
 ];
 
 function Index() {
@@ -51,6 +52,7 @@ function Index() {
         <Ticker />
         <Upgrade />
         <HowItWorks />
+        <Agents />
         <FinalCta />
       </main>
       <SiteFooter />
@@ -71,6 +73,9 @@ function SiteHeader() {
           </a>
           <a href="#sort" className="label-mono text-ink-soft hover:text-primary">
             How it works
+          </a>
+          <a href="#agents" className="label-mono text-ink-soft hover:text-primary">
+            Agents
           </a>
         </nav>
         <div className="flex justify-end">
@@ -100,9 +105,9 @@ function Hero() {
             Keep the <span className="text-primary">ore.</span>
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-relaxed text-ink-soft md:text-xl">
-            My Ore is a notes app that reads back. Empty your head into the scratchpad and
-            Hopper picks out the dates, calls and people — then sorts it all into a day you can
-            actually finish.
+            The notes app for people running a business. Empty your head into the scratchpad,
+            Hopper sorts it into a day you can finish — and his agents quietly handle the
+            receipts, mileage and invoice chasing.
           </p>
           <div className="mt-9 max-w-xl">
             <WaitlistForm />
@@ -324,20 +329,60 @@ function HowItWorks() {
   );
 }
 
+function Agents() {
+  return (
+    <section id="agents" className="relative scroll-mt-20 overflow-hidden border-b border-ink bg-paper-deep">
+      <div className="absolute inset-0 paper-grid opacity-60" aria-hidden />
+      <div className="relative mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-28">
+        <div className="grid gap-6 md:grid-cols-[1.5fr_1fr] md:items-end">
+          <div>
+            <p className="label-mono text-primary">04 / Agents for business</p>
+            <h2 className="display-tight mt-5 text-[clamp(2.5rem,5.5vw,4.5rem)]">
+              You run the business.
+              <br />
+              <span className="text-ink-soft">Hopper's crew does the admin.</span>
+            </h2>
+          </div>
+          <p className="max-w-md text-lg text-ink-soft md:justify-self-end">
+            Receipts, mileage, overdue invoices, buried emails. Each agent reads what comes in,
+            fills in the fields that matter and suggests the next step. Pick one and try it.
+          </p>
+        </div>
+        <div className="mt-14">
+          <AgentDesk />
+        </div>
+        <div className="mt-16 grid border border-ink bg-paper sm:grid-cols-3">
+          {[
+            ["Hours back", "The Sunday-night receipt shoebox, gone."],
+            ["Tax-ready", "VAT, categories and mileage logged as you go."],
+            ["Always asks", "Nothing is filed, sent or moved without your OK."],
+          ].map(([t, b], i) => (
+            <div key={t} className="border-ink p-7 not-last:border-b sm:not-last:border-r sm:border-b-0">
+              <p className="label-mono text-muted-foreground">0{i + 1}</p>
+              <h3 className="mt-4 font-display text-xl font-bold tracking-tight">{t}</h3>
+              <p className="mt-2 text-ink-soft">{b}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FinalCta() {
   return (
     <section id="join" className="relative scroll-mt-20 overflow-hidden border-b border-ink">
       <div className="absolute inset-0 paper-grid" aria-hidden />
       <div className="relative mx-auto max-w-4xl px-5 pt-24 pb-10 text-center md:px-8">
-        <p className="label-mono text-ink-soft">04 / Early access</p>
+        <p className="label-mono text-ink-soft">05 / Early access</p>
         <h2 className="display-tight mt-6 text-[clamp(3rem,8vw,6.5rem)]">
           Your head's full.
           <br />
           <span className="text-primary">Hopper isn't.</span>
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-lg text-ink-soft">
-          My Ore lands on iPhone in Autumn 2026. Get on the list and be one of the first to
-          empty your head into it.
+          My Ore lands on iPhone in Autumn 2026. Get on the list and hand Hopper the admin
+          you never got into business to do.
         </p>
         <div className="mx-auto mt-10 max-w-xl text-left">
           <WaitlistForm />
