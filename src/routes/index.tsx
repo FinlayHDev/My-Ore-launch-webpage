@@ -293,7 +293,7 @@ function HowItWorks() {
         </h2>
 
         <div className="mt-16 grid gap-16 lg:grid-cols-2 lg:gap-12">
-          <div>
+          <div className="min-w-0">
             <div className="mb-8 max-w-md">
               <p className="label-mono text-night-muted">Fig. 02 / Sort</p>
               <h3 className="mt-3 font-display text-3xl font-bold tracking-tight">
@@ -309,7 +309,7 @@ function HowItWorks() {
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <div className="mb-8 max-w-md">
               <p className="label-mono text-night-muted">Fig. 03 / Today</p>
               <h3 className="mt-3 font-display text-3xl font-bold tracking-tight">
