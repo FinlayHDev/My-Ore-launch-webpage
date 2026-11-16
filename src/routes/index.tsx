@@ -7,6 +7,7 @@ import { SortDeck } from "@/components/landing/SortDeck";
 import { TodayLanes } from "@/components/landing/TodayLanes";
 import { Contours } from "@/components/landing/Contours";
 import { AgentDesk } from "@/components/landing/AgentDesk";
+import { ScanFlow } from "@/components/landing/ScanFlow";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -350,6 +351,20 @@ function Agents() {
         </div>
         <div className="mt-14">
           <AgentDesk />
+        </div>
+        <div className="mt-20 grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+          <div className="max-w-md">
+            <p className="label-mono text-muted-foreground">Fig. 05 / Scan</p>
+            <h3 className="mt-3 font-display text-3xl font-bold tracking-tight">
+              Snap the pile. Hopper reads every page.
+            </h3>
+            <p className="mt-3 text-ink-soft">
+              Receipts, invoices and letters come back as cards with the totals, due dates and
+              senders already filled in. Send each one to My hub, Home or Work — with a reminder
+              if it needs one.
+            </p>
+          </div>
+          <ScanFlow />
         </div>
         <div className="mt-16 grid border border-ink bg-paper sm:grid-cols-3">
           {[

@@ -1,7 +1,7 @@
 // To revert to the original Hopper, import "@/assets/hopper-dark.svg.asset.json" here instead.
 import hopperDark from "@/assets/hopper-v2.svg.asset.json";
-// Old light version: "@/assets/hopper-light.svg.asset.json"
-import hopperLight from "@/assets/hopper-light-v2.svg.asset.json";
+// Light versions: original "@/assets/hopper-light.svg.asset.json", orange-ore "@/assets/hopper-light-v2.svg.asset.json"
+import hopperLight from "@/assets/hopper-mono.svg.asset.json";
 import { cn } from "@/lib/utils";
 
 /** Hopper, the My Ore mascot. `tone="dark"` = black cart for light backgrounds. */
