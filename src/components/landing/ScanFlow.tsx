@@ -66,7 +66,7 @@ export function ScanFlow() {
                   <p className="label-mono flex items-center gap-1.5 text-primary"><Hopper tone="light" className="h-3 w-auto" /> {it.kind}</p>
                   <p className="truncate font-semibold">{it.title}</p>
                 </div>
-                <p className="font-mono text-sm">{it.rows[0][1]}</p>
+                <p className="font-mono text-sm">{it.rows[0]?.[1]}</p>
               </div>
             ))}
             <button onClick={() => setStep(0)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3 font-bold text-primary-foreground">
