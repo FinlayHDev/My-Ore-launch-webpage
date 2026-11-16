@@ -240,11 +240,14 @@ export function TodayLanes() {
             </p>
           </div>
           {timer.left === 0 && (
-            <div className="mt-3 flex gap-2 text-sm font-bold">
-              <button onClick={() => { toggle(timedTask.id); setTimer(null); }} className="flex-1 rounded-full bg-night py-2 text-night-foreground">
+            <div className="mt-3 grid grid-cols-3 gap-2 text-sm font-bold">
+              <button onClick={() => { toggle(timedTask.id); setTimer(null); }} className="rounded-full bg-night py-2 text-night-foreground">
                 Done
               </button>
-              <button onClick={() => setTimer(null)} className="flex-1 rounded-full border border-current py-2">
+              <button onClick={() => setTimer({ id: timedTask.id, left: 10, running: true })} className="rounded-full border border-current py-2">
+                +10 min
+              </button>
+              <button onClick={() => setTimer(null)} className="rounded-full py-2 opacity-80 hover:opacity-100">
                 Not yet
               </button>
             </div>
