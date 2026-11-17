@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Mic, Paperclip, Sparkles, Type } from "lucide-react";
 import { Hopper } from "./Hopper";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScratchpadSortFlow, type ScratchpadItem } from "./ScratchpadSortFlow";
 
 type Kind = "date" | "action" | "phone" | "person" | "time";
 type Seg = { t: string; k?: Kind };
@@ -77,7 +79,7 @@ const NOTES: Note[] = [
   },
 ];
 
-type Phase = "typing" | "read" | "sorting" | "sorted";
+type Phase = "typing" | "read" | "sorting";
 
 const tokenClass: Record<Kind, string> = {
   date: "token-date",
@@ -100,9 +102,10 @@ export function ScratchpadDemo() {
   const [chars, setChars] = useState(0);
   const [phase, setPhase] = useState<Phase>("typing");
   const [reduced, setReduced] = useState(false);
-  const [sortedCount, setSortedCount] = useState(0);
+  const [feed, setFeed] = useState<Note[]>([]);
 
-  const note = NOTES[noteIndex] ?? NOTES[0]!;
+  const note = NOTES[noteIndex];
+  if (!note) throw new Error("Scratchpad demo note is missing");
   const total = useMemo(() => note.segs.reduce((n, s) => n + s.t.length, 0), [note]);
 
   useEffect(() => {
@@ -111,7 +114,8 @@ export function ScratchpadDemo() {
   }, []);
 
   useEffect(() => {
-    if (reduced) {
+    if (phase === "sorting") return;
+    if (reduced && phase === "typing") {
       setChars(total);
       setPhase("read");
       return;
@@ -123,25 +127,43 @@ export function ScratchpadDemo() {
       } else {
         t = window.setTimeout(() => setPhase("read"), 450);
       }
-    } else if (phase === "read") {
-      t = window.setTimeout(() => setPhase("sorting"), 1900);
-    } else if (phase === "sorting") {
-      t = window.setTimeout(() => {
-        setPhase("sorted");
-        setSortedCount((n) => n + note.tasks.length);
-      }, 650);
     } else {
       t = window.setTimeout(() => {
-        setNoteIndex((n) => (n + 1) % NOTES.length);
-        setChars(0);
-        setPhase("typing");
-      }, 3000);
+        if (noteIndex === NOTES.length - 1) {
+          setPhase("sorting");
+        } else {
+          setFeed((current) => [...current, note]);
+          setNoteIndex((current) => current + 1);
+          setChars(0);
+          setPhase("typing");
+        }
+      }, reduced ? 4000 : 1900);
     }
     return () => window.clearTimeout(t);
-  }, [phase, chars, total, reduced, note.tasks.length]);
+  }, [phase, chars, total, reduced, noteIndex, note]);
+
+  const collected = [...feed, note];
+  const sortingItems: ScratchpadItem[] = collected.flatMap((entry) => entry.tasks.map((task) => ({
+    ...task,
+    source: entry.segs.map((segment) => segment.t).join(""),
+    destination: entry.tag === "Us" ? "My hub" as const : entry.tag,
+  })));
+  function restart() {
+    setFeed([]);
+    setNoteIndex(0);
+    setChars(0);
+    setPhase("typing");
+  }
+  function beginSort() {
+    setChars(total);
+    setPhase("sorting");
+  }
+  if (phase === "sorting") {
+    return <div className="relative mx-auto w-full max-w-[420px]"><ScratchpadSortFlow items={sortingItems} onRestart={restart} /></div>;
+  }
 
   const showChips = phase !== "typing";
-  const toSort = phase === "sorted" ? 0 : note.tasks.length;
+  const toSort = sortingItems.length;
 
   let offset = 0;
   const rendered = note.segs.map((s, i) => {
@@ -165,14 +187,14 @@ export function ScratchpadDemo() {
       <div
         className="relative z-10 overflow-hidden rounded-[2rem] border border-night-line bg-night text-night-foreground shadow-float"
         aria-label="Animated demo: typing a note into the My Ore scratchpad"
-        role="img"
+
       >
         <div className="flex items-center justify-between gap-3 px-5 pt-5">
           <div className="relative grid h-12 w-12 shrink-0 place-items-center rounded-full border border-night-line bg-night-card">
             <Hopper
               tone="light"
-              key={phase === "sorting" ? `gulp-${noteIndex}` : "idle"}
-              className={cn("h-7 w-auto", phase === "sorting" && "animate-gulp")}
+              key={noteIndex}
+              className="h-7 w-auto"
             />
             {toSort > 0 && (
               <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-night bg-primary" />
@@ -211,7 +233,7 @@ export function ScratchpadDemo() {
           <p
             className={cn(
               "font-display text-[22px] leading-[1.55] font-medium tracking-tight transition-all duration-500",
-              phase === "sorted" && "-translate-y-3 opacity-0 blur-sm",
+
             )}
           >
             {rendered}
@@ -220,33 +242,20 @@ export function ScratchpadDemo() {
             )}
           </p>
 
-          {phase === "sorted" && (
-            <div className="absolute inset-x-5 top-6 flex flex-col items-center text-center">
-              <span className="animate-slide-in grid h-12 w-12 place-items-center rounded-full bg-primary/15 text-primary">
-                <CheckCircle2 className="h-6 w-6" />
-              </span>
-              <p className="animate-slide-in mt-3 font-display text-lg font-bold [animation-delay:80ms]">
-                Sorted into your week
-              </p>
-              <p className="animate-slide-in text-sm text-night-muted [animation-delay:140ms]">
-                The scratchpad's clear again.
-              </p>
-            </div>
-          )}
+
         </div>
 
         <div className="min-h-[72px] px-5">
           <p
             className={cn(
               "label-mono flex items-center gap-1.5 text-night-muted transition-opacity duration-300",
-              showChips && phase !== "sorted" ? "opacity-100" : "opacity-0",
+              showChips ? "opacity-100" : "opacity-0",
             )}
           >
             <Sparkles className="h-3 w-3 text-primary" /> Hopper read this
           </p>
           <div className="mt-2.5 flex flex-wrap gap-2">
             {showChips &&
-              phase !== "sorted" &&
               note.chips.map((c, i) => (
                 <span
                   key={`${noteIndex}-${c.label}`}
@@ -268,51 +277,35 @@ export function ScratchpadDemo() {
           <Type className="h-4 w-4" />
           <Paperclip className="h-4 w-4" />
           <Mic className="h-4 w-4" />
-          <span
+          <Button
+            onClick={beginSort}
             className={cn(
-              "ml-auto rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300",
+              "ml-auto h-auto rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300",
               toSort > 0
                 ? "bg-primary text-primary-foreground"
                 : "bg-night-raised text-night-muted",
               phase === "read" && "animate-pulse-ore",
-              phase === "sorting" && "scale-90 opacity-80",
+
             )}
           >
             {toSort > 0 ? `Sort ${toSort} item${toSort > 1 ? "s" : ""}` : "All sorted"}
-          </span>
+          </Button>
         </div>
       </div>
 
-      {/* Sorted tasks card */}
-      <div className="relative z-20 -mt-8 ml-auto w-[88%] translate-x-3 rounded-2xl border border-ink bg-card p-4 shadow-float sm:translate-x-10">
-        <div className="flex items-center justify-between">
-          <p className="label-mono text-muted-foreground">This week</p>
-          <p className="label-mono text-primary">{sortedCount} sorted</p>
+      {/* Saved notes stay in the feed until Sort opens their extracted cards. */}
+      <div className="relative z-20 -mt-2 rounded-xl border border-night-line bg-night-card p-4 text-night-foreground">
+        <div className="flex items-center justify-between gap-2">
+          <p className="label-mono text-night-muted">Scratchpad feed</p>
+          <p className="text-xs text-primary">{feed.length} saved</p>
         </div>
         <ul className="mt-3 space-y-2">
-          {phase === "sorted" ? (
-            note.tasks.map((task, i) => (
-              <li
-                key={`${noteIndex}-${task.title}`}
-                className="animate-slide-in flex items-center gap-3 rounded-xl bg-paper-deep px-3 py-2.5"
-                style={{ animationDelay: `${i * 140}ms` }}
-              >
-                <span className="h-4 w-4 shrink-0 rounded-full border-2 border-ink-soft" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{task.title}</p>
-                  <p className="text-xs text-muted-foreground">{task.meta}</p>
-                </div>
-                <span className="shrink-0 rounded-full bg-ore-soft px-2.5 py-1 text-[11px] font-bold text-ink">
-                  {task.when}
-                </span>
-              </li>
-            ))
-          ) : (
-            <li className="flex items-center gap-3 rounded-xl border border-dashed border-paper-line px-3 py-[18px] text-sm text-muted-foreground">
-              <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-primary" />
-              Hopper is listening…
+          {feed.length ? feed.map((entry, index) => (
+            <li key={index} className="border-t border-night-line pt-2 text-xs leading-relaxed">
+              <span className="mr-2 font-bold text-primary">{entry.tag}</span>
+              {entry.segs.map((segment) => segment.t).join("")}
             </li>
-          )}
+          )) : <li className="text-sm text-night-muted">Hopper is listening…</li>}
         </ul>
       </div>
     </div>
