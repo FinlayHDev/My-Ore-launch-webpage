@@ -61,6 +61,8 @@
   --color-night-muted: var(--night-muted);
 
   --color-cream-card: var(--cream-card);
+  --color-today-background: var(--today-background);
+  --color-today-notice: var(--today-notice);
 
   --color-token-date: var(--token-date);
   --color-token-date-bg: var(--token-date-bg);
@@ -108,6 +110,10 @@
   --night-muted: oklch(0.68 0.02 245);
 
   --cream-card: oklch(0.955 0.022 85);
+  --today-background: oklch(0.155 0.025 235);
+  --today-highlight: oklch(0.72 0.19 48);
+  --today-notice: oklch(0.82 0.12 52);
+  --today-expired: oklch(0.72 0.19 48 / 0.12);
 
   /* What Hopper reads */
   --token-date: oklch(0.83 0.11 62);
@@ -426,3 +432,24 @@
       transparent 37px 56px
     );
 }
+
+/* Today mirrors the app's open timeline, rather than stacked task cards. */
+.today-screen { letter-spacing: 0; }
+.today-day:hover, .today-quiet:hover, .today-nav:hover { background: var(--night-raised); color: var(--night-foreground); }
+.today-day-selected, .today-day-selected:hover { background: var(--cream-card); border-color: var(--cream-card); color: var(--ink); }
+.today-task::before { content: ""; position: absolute; left: 31px; top: -9px; bottom: 0; width: 1px; background: var(--night-line); }
+.today-check { background: var(--today-background); }
+.today-check:hover { background: var(--night-raised); }
+.today-check-done, .today-check-done:hover { background: var(--today-highlight); border-color: var(--today-highlight); color: var(--ink); }
+.today-check-expired { border-color: var(--today-highlight); box-shadow: 0 0 0 4px var(--today-expired); }
+.today-task-expired { background: var(--today-expired); border-bottom: 1px solid var(--today-highlight); }
+.today-done, .today-done:hover { background: var(--today-highlight); color: var(--ink); box-shadow: none; }
+.today-done:hover { opacity: 0.9; }
+.today-extra:hover { background: var(--night-raised); color: var(--night-foreground); }
+.today-timer { border-bottom: 2px solid var(--today-highlight); }
+.today-nav { height: 56px; min-width: 0; flex-direction: column; gap: 6px; padding: 0; color: var(--night-muted); font-size: 10px; }
+.today-nav svg { width: 22px; height: 22px; }
+.today-nav-active { color: var(--today-highlight); }
+.today-nav-scratch { height: 75px; color: var(--night-foreground); }
+.today-pencil { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--today-highlight); color: var(--ink); box-shadow: 0 0 0 6px var(--today-background); }
+@media (min-width: 640px) { .today-task::before { left: 35px; } }

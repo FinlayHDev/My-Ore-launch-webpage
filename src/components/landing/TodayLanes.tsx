@@ -1,41 +1,15 @@
 import { useEffect, useState } from "react";
-import { Check, Pause, Play, Target, Users, Zap } from "lucide-react";
+import { CalendarDays, Check, Layers, ListFilter, Pause, Pencil, Play, Sparkles, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Hopper } from "./Hopper";
 import { cn } from "@/lib/utils";
 
-type Task = { id: number; title: string; tag: string; done: boolean };
-type Lane = { key: string; label: string; icon: typeof Zap; hint: string; tasks: Task[] };
-
-const INITIAL: Lane[] = [
-  {
-    key: "quick",
-    label: "Quick wins",
-    icon: Zap,
-    hint: "under 5 min",
-    tasks: [
-      { id: 1, title: "Reply to supplier quote", tag: "#jobs", done: true },
-      { id: 2, title: "Chase INV-0142", tag: "#money", done: false },
-    ],
-  },
-  {
-    key: "deep",
-    label: "Deep focus",
-    icon: Target,
-    hint: "one at a time",
-    tasks: [{ id: 3, title: "Price up the kitchen refit", tag: "#jobs", done: false }],
-  },
-  {
-    key: "others",
-    label: "With others",
-    icon: Users,
-    hint: "needs a reply",
-    tasks: [
-      { id: 4, title: "Call Jo at Harlow & Co", tag: "Jo", done: true },
-      { id: 5, title: "Confirm Thursday site visit", tag: "#jobs", done: false },
-    ],
-  },
+type Task = { id: number; title: string; tag?: string; minutes: number; done: boolean };
+const INITIAL: Task[] = [
+  { id: 1, title: "Call supplier", tag: "#Call supplier", minutes: 25, done: false },
+  { id: 2, title: "Check for updates on Gello", minutes: 25, done: false },
 ];
-
+const DAYS = [["Tue", 10], ["Wed", 11], ["Thu", 12], ["Fri", 13], ["Sat", 14], ["Sun", 15], ["Mon", 16]] as const;
 export function loadLabel(left: number) {
   if (left === 0) return "Clear. Go outside.";
   if (left <= 1) return "Nearly there";
@@ -43,217 +17,125 @@ export function loadLabel(left: number) {
   return "A full cart";
 }
 
-const DAYS = [
-  ["Mon", 19],
-  ["Tue", 20],
-  ["Wed", 21],
-  ["Thu", 22],
-  ["Fri", 23],
-  ["Sat", 24],
-  ["Sun", 25],
-] as const;
-
 export function TodayLanes() {
-  const [lanes, setLanes] = useState(INITIAL);
+  const [tasks, setTasks] = useState(INITIAL);
+  const [day, setDay] = useState(10);
   const [view, setView] = useState<"list" | "split">("list");
-  // Demo timer: 25 "minutes" run at 1 per 0.2s so the Time's up moment is visible.
-  const [timer, setTimer] = useState<{ id: number; left: number; running: boolean } | null>(null);
+  const [timer, setTimer] = useState<{ id: number; left: number; running: boolean } | null>({ id: 2, left: 0, running: false });
+  // Accelerated preview timer; one demo minute elapses every 200ms.
   useEffect(() => {
     if (!timer?.running || timer.left <= 0) return;
-    const t = setTimeout(() => setTimer((x) => (x ? { ...x, left: x.left - 1 } : x)), 200);
-    return () => clearTimeout(t);
+    const tick = setTimeout(() => setTimer((current) => current ? { ...current, left: current.left - 1 } : null), 200);
+    return () => clearTimeout(tick);
   }, [timer]);
-  const timedTask = timer ? lanes.flatMap((l) => l.tasks).find((t) => t.id === timer.id) : null;
-  function startTimer(id: number) {
-    setTimer((x) => (x?.id === id ? { ...x, running: !x.running } : { id, left: 25, running: true }));
-  }
-  const all = lanes.flatMap((l) => l.tasks);
-  const doneCount = all.filter((t) => t.done).length;
-  const left = all.length - doneCount;
-  const pct = Math.round((doneCount / all.length) * 100);
-  const R = 34;
-  const C = 2 * Math.PI * R;
-
+  const doneCount = tasks.filter((task) => task.done).length;
+  const remaining = tasks.filter((task) => !task.done);
+  const minutes = remaining.reduce((total, task) => total + task.minutes, 0);
+  const timedTask = tasks.find((task) => task.id === timer?.id && !task.done);
+  const expired = timer?.left === 0;
   function toggle(id: number) {
-    setLanes((ls) =>
-      ls.map((l) => ({
-        ...l,
-        tasks: l.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
-      })),
-    );
+    setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
+    if (timer?.id === id) setTimer(null);
   }
+  function startTimer(id: number) {
+    setTimer((current) => current?.id === id && current.left > 0
+      ? { ...current, running: !current.running }
+      : { id, left: 25, running: true });
+  }
+  const selectedDay = DAYS.find((entry) => entry[1] === day);
+  const dayName = ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Monday"][DAYS.findIndex((entry) => entry[1] === day)];
 
   return (
-    <div className="rounded-[2rem] border border-night-line bg-night p-5 text-night-foreground shadow-float">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="label-mono text-primary">Today</p>
-          <p className="mt-1 font-display text-3xl leading-none font-extrabold tracking-tight">
-            Sunday
-            <br />
-            25 Oct
-          </p>
-          <p className="mt-2 text-sm text-night-muted">{loadLabel(left)}</p>
-        </div>
-        <div className="relative h-24 w-24 shrink-0">
-          <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
-            <circle cx="40" cy="40" r={R} fill="none" strokeWidth="6" className="stroke-night-line" />
-            <circle
-              cx="40"
-              cy="40"
-              r={R}
-              fill="none"
-              strokeWidth="6"
-              strokeLinecap="round"
-              className="stroke-primary transition-[stroke-dashoffset] duration-700 ease-out"
-              strokeDasharray={C}
-              strokeDashoffset={C - (C * pct) / 100}
-            />
-          </svg>
-          <div className="absolute inset-3 grid place-items-center rounded-full bg-night-card">
-            <Hopper
-              tone="light"
-              key={doneCount}
-              className={cn("h-8 w-auto", doneCount > 0 && "animate-gulp")}
-            />
+    <div aria-label="Interactive Today preview" className="today-screen overflow-hidden rounded-[2rem] border border-night-line bg-today-background text-night-foreground shadow-float">
+      <div className="px-5 pt-7 sm:px-6">
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
+          <div className="min-w-0">
+            <p className="font-mono text-xs font-semibold text-night-muted uppercase">{dayName} · {day} Nov</p>
+            <h4 className="mt-1 text-5xl leading-tight font-bold">Today</h4>
           </div>
-          <span className="absolute -bottom-1 right-0 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
-            {pct}%
-          </span>
+          <div className="flex shrink-0 items-center gap-2 pb-2 font-mono text-lg font-bold text-night-muted">
+            <Hopper tone="light" className="h-7 w-auto" />
+            <span aria-live="polite">{doneCount} / {tasks.length}</span>
+          </div>
+        </header>
+        <div className="mt-5 h-0.5 bg-night-line" role="progressbar" aria-label="Today's completion" aria-valuemin={0} aria-valuemax={2} aria-valuenow={doneCount}>
+          <div className="h-full min-w-1 bg-primary transition-[width] duration-500" style={{ width: `${doneCount / tasks.length * 100}%` }} />
+        </div>
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-2 text-sm text-night-muted">
+          <p aria-live="polite">{remaining.length === 0 ? "All done" : `${remaining.length} left · about ${minutes} min`}</p>
+          <p>Capacity {remaining.length} of 6</p>
+        </div>
+        <div className="mt-7 grid grid-cols-7 gap-1.5" aria-label="Choose a day">
+          {DAYS.map(([label, date]) => (
+            <Button key={date} variant="ghost" aria-label={`${label} ${date} November`} aria-pressed={day === date} onClick={() => setDay(date)} className={cn("today-day h-14 min-w-0 flex-col gap-0 rounded-xl border border-night-line px-0 text-night-muted", day === date && "today-day-selected")}>
+              <span className="text-xs">{label}</span><span className="text-xl font-bold">{date}</span>
+            </Button>
+          ))}
+        </div>
+        <div className="mt-5 flex justify-end">
+          <Button variant="ghost" size="sm" onClick={() => setView(view === "list" ? "split" : "list")} aria-pressed={view === "split"} title="Split calendar with Sam" className="today-quiet gap-1.5 text-xs text-night-muted">
+            <CalendarDays />{view === "split" ? "Back to list" : "Split with Sam"}
+          </Button>
         </div>
       </div>
-
-      <div className="mt-4 grid grid-cols-7 gap-1.5">
-        {DAYS.map(([d, n]) => (
-          <div
-            key={d}
-            className={cn(
-              "rounded-lg border py-1.5 text-center",
-              n === 25
-                ? "border-cream-card bg-cream-card text-ink"
-                : "border-night-line bg-night-card",
-            )}
-          >
-            <p className={cn("text-[10px]", n === 25 ? "text-ink-soft" : "text-night-muted")}>{d}</p>
-            <p className="text-sm font-bold">{n}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 rounded-full bg-night-card p-1 text-sm font-bold">
-        {(["list", "split"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={cn(
-              "rounded-full py-1.5 capitalize transition-colors",
-              view === v ? "bg-primary text-primary-foreground" : "text-night-muted",
-            )}
-          >
-            {v === "split" ? "Split with Sam" : "List"}
-          </button>
-        ))}
-      </div>
-
-      {view === "split" ? (
-        <SplitView />
-      ) : (
-      <div className="mt-5 space-y-4">
-        {lanes.map((lane) => {
-          const laneLeft = lane.tasks.filter((t) => !t.done).length;
-          return (
-            <div key={lane.key}>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="flex items-center gap-2 text-xs font-extrabold tracking-wider uppercase">
-                  <lane.icon className="h-3.5 w-3.5 text-primary" /> {lane.label}
-                </p>
-                <p className="text-xs text-night-muted">
-                  {laneLeft === 0 ? "all done" : `${laneLeft} left · ${lane.hint}`}
-                </p>
-              </div>
-              <ul className="divide-y divide-night-line overflow-hidden rounded-2xl bg-night-card">
-                {lane.tasks.map((t) => (
-                  <li key={t.id}>
-                    <div className="flex items-center">
-                    <button
-                      onClick={() => toggle(t.id)}
-                      className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left transition-colors hover:bg-night-raised"
-                      aria-pressed={t.done}
-                    >
-                      <span
-                        className={cn(
-                          "grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition-all",
-                          t.done
-                            ? "scale-110 border-primary bg-primary text-primary-foreground"
-                            : "border-night-muted",
-                        )}
-                      >
-                        {t.done && <Check className="h-3 w-3" strokeWidth={3} />}
-                      </span>
-                      <span
-                        className={cn(
-                          "min-w-0 flex-1 truncate text-[15px] font-semibold transition-colors",
-                          t.done && "text-night-muted line-through",
-                        )}
-                      >
-                        {t.title}
-                      </span>
-                      <span className="shrink-0 text-xs text-night-muted">{t.tag}</span>
-                    </button>
-                    {!t.done && (
-                      <button
-                        onClick={() => startTimer(t.id)}
-                        aria-label={`Start a 25 minute timer for ${t.title}`}
-                        className={cn(
-                          "mx-2 flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold transition-colors",
-                          timer?.id === t.id
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-night-raised text-night-muted hover:text-night-foreground",
-                        )}
-                      >
-                        {timer?.id === t.id && timer.running ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                        {timer?.id === t.id ? `${timer.left}m` : "25m"}
-                      </button>
-                    )}
+      <div className="min-h-[390px] pt-2">
+        {view === "split" ? <div className="px-5 pb-6"><SplitView /></div> : (
+          <div>
+            {tasks.map((task, index) => {
+              const isTimed = timedTask?.id === task.id;
+              const timeUp = isTimed && expired;
+              return (
+                <section key={task.id} className="mb-5">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-5 sm:px-6">
+                    <p className="flex min-w-0 items-center gap-4 font-mono text-xs font-bold uppercase"><span className="ml-1 h-2.5 w-2.5 shrink-0 rotate-45 bg-primary" />{index === 0 ? "Quick wins" : "With others"}</p>
+                    <p className="font-mono text-[11px] text-night-muted">{task.done ? "all done" : index === 0 ? "1 left · under 25 min" : "1 left"}</p>
+                  </div>
+                  <div className={cn("today-task relative mt-1 px-5 py-4 sm:px-6", timeUp && "today-task-expired")}>
+                    <div className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-4">
+                      <Button variant="ghost" size="icon" aria-label={`${task.done ? "Undo completion of" : "Complete"} ${task.title}`} aria-pressed={task.done} onClick={() => toggle(task.id)} className={cn("today-check relative z-10 mt-1 h-6 w-6 rounded-full border-2 border-night-muted p-0", task.done && "today-check-done", timeUp && "today-check-expired")}>
+                        {task.done && <Check />}
+                      </Button>
+                      <div className="min-w-0">
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                          <p className={cn("text-lg leading-snug font-medium", task.done && "text-night-muted line-through")}>{task.title}</p>
+                          {!task.done && !timeUp && <Button variant="ghost" size="sm" onClick={() => startTimer(task.id)} aria-label={`${isTimed && timer?.running ? "Pause" : "Start"} a 25 minute timer for ${task.title}`} className="today-quiet h-8 gap-2 px-0 text-night-muted"><span className="font-mono text-xs">{isTimed ? `${timer?.left}m` : "25m"}</span>{isTimed && timer?.running ? <Pause /> : <Play />}</Button>}
+                        </div>
+                        {task.tag && <p className="mt-1 text-sm text-night-muted">{task.tag}</p>}
+                        {timeUp && <>
+                          <p className="mt-2 font-mono text-xs font-bold text-today-notice uppercase">Time's up · 25 min</p>
+                          <div className="mt-5 grid grid-cols-[1fr_1fr_auto] items-center gap-2">
+                            <Button onClick={() => toggle(task.id)} className="today-done h-11 rounded-full text-base font-bold">Done</Button>
+                            <Button variant="ghost" onClick={() => setTimer({ id: task.id, left: 10, running: true })} className="today-extra h-11 rounded-full border border-night-muted px-2 text-base font-semibold">+10 min</Button>
+                            <Button variant="ghost" onClick={() => setTimer(null)} className="today-quiet h-11 px-1 text-sm text-night-muted">Not yet</Button>
+                          </div>
+                        </>}
+                      </div>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        })}
-      </div>
-      )}
-
-      {timer && timedTask && !timedTask.done && (
-        <div
-          className={cn(
-            "mt-5 rounded-2xl p-4 transition-colors",
-            timer.left === 0 ? "bg-primary text-primary-foreground" : "bg-night-card",
-          )}
-        >
-          <p className="label-mono">{timer.left === 0 ? "Time's up · 25 min" : "Focus timer"}</p>
-          <div className="mt-2 flex items-center gap-3">
-            <p className="min-w-0 flex-1 truncate font-semibold">{timedTask.title}</p>
-            <p className="font-display text-xl font-bold tabular-nums">
-              {String(timer.left).padStart(2, "0")}:00
-            </p>
+                  </div>
+                </section>
+              );
+            })}
+            {remaining.length === 0 && <p className="px-6 py-6 text-center text-night-muted">{loadLabel(0)}</p>}
           </div>
-          {timer.left === 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 text-sm font-bold">
-              <button onClick={() => { toggle(timedTask.id); setTimer(null); }} className="rounded-full bg-night py-2 text-night-foreground">
-                Done
-              </button>
-              <button onClick={() => setTimer({ id: timedTask.id, left: 10, running: true })} className="rounded-full border border-current py-2">
-                +10 min
-              </button>
-              <button onClick={() => setTimer(null)} className="rounded-full py-2 opacity-80 hover:opacity-100">
-                Not yet
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
+      <div className="px-4 pb-4">
+        {timer && timedTask ? (
+          <div className="today-timer grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 rounded-2xl border border-night-line bg-night-card px-4 py-3">
+            <div className="min-w-0"><p className="font-mono text-[10px] font-bold text-night-muted uppercase">{expired ? "Time's up" : timer.running ? "Focus timer" : "Paused"}</p><p className="mt-1 truncate text-sm font-semibold">{timedTask.title}</p></div>
+            <span className="font-mono text-2xl font-bold tabular-nums" aria-live="off">{String(timer.left).padStart(2, "0")}:00</span>
+            <Button variant="ghost" size="icon" onClick={() => startTimer(timedTask.id)} aria-label={timer.running && !expired ? "Pause focus timer" : "Resume focus timer"} className="today-quiet h-7 w-7">{timer.running && !expired ? <Pause /> : <Play />}</Button>
+            <Button size="icon" onClick={() => toggle(timedTask.id)} aria-label="Complete timed task" className="today-done h-11 w-11 rounded-full"><Check /></Button>
+          </div>
+        ) : <div className="flex h-[74px] items-center px-2 text-sm text-night-muted">{remaining.length ? `${selectedDay?.[0]} · ${loadLabel(remaining.length)}` : "A clear cart. A little time back."}</div>}
+      </div>
+      <nav aria-label="App preview navigation" className="grid grid-cols-5 items-end border-t border-night-line px-2 pt-3 pb-5">
+        <Button variant="ghost" onClick={() => setView("list")} className="today-nav today-nav-active"><Sun /><span>Today</span></Button>
+        <Button variant="ghost" asChild className="today-nav"><a href="#sort"><ListFilter /><span>Sort</span></a></Button>
+        <Button variant="ghost" asChild className="today-nav today-nav-scratch"><a href="#top"><span className="today-pencil"><Pencil /></span><span>Scratchpad</span></a></Button>
+        <Button variant="ghost" asChild className="today-nav"><a href="#agents"><Sparkles /><span>Agents</span></a></Button>
+        <Button variant="ghost" asChild className="today-nav"><a href="#agents"><Layers /><span>HQ</span></a></Button>
+      </nav>
     </div>
   );
 }
